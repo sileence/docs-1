@@ -284,16 +284,39 @@ Here's a complete example of testing the "UploadPhoto" component with Livewire.
 @slot('class')
 @verbatim
 /** @test **/
-function can_upload_photo() {
-    Storage::fake();
+function can_upload_photo()
+{
+    Storage::fake('avatars');
 
-    $file = UploadedFile::fake()->image('avatar.png');
+    $file = UploadedFile::fake()->image('avatar.jpg');
 
-    Livewire::test(UploadPhoto::class)
+    Livewire::test(FileUploadComponent::class)
         ->set('photo', $file)
-        ->call('save');
+        ->call('upload', 'uploaded-avatar.jpg');
 
-    Storage::assertExists('avatar.png');
+    Storage::disk('avatars')->assertExists('uploaded-avatar.jpg');
+}
+@endverbatim
+@endslot
+@endcomponent
+
+@component('components.code-component', [
+    'className' => 'FileUploadComponent.php',
+])
+@slot('class')
+@verbatim
+class FileUploadComponent extends Component
+{
+    use WithFileUploads;
+
+    public $photo;
+
+    // ...
+    
+    public function upload($name)
+    {
+        $this->photo->storeAs('/', $name, $disk = 'avatars');
+    }
 }
 @endverbatim
 @endslot
